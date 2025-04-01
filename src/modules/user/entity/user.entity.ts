@@ -1,4 +1,4 @@
-import { Field, ObjectType } from "type-graphql";
+import { Field, InputType, ObjectType } from "type-graphql";
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { Status, UserRole } from "./user.enum";
 import { Assets } from "../../Asset/entity/asset.entity";
@@ -27,55 +27,55 @@ export class Users {
     role!: UserRole;
 
     @Column({ type: "date", nullable: true })
-    @Field()
+    @Field({ nullable: true})
     dob?: Date;
 
     @Column({ type: "varchar", length: 10, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     gender?: string;
 
     @Column({ type: "varchar", length: 50, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     blood_group?: string;
 
     @Column({ type: "varchar", length: 10, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     marital_status?: string;
 
     @Column({ type: "varchar", length: 10, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     phone?: string;
 
     @Column({ type: "text", nullable: true })
-    @Field()
+    @Field({ nullable: true})
     address?: string;
 
     @Column({ type: "varchar", length: 50, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     designation?: string;
 
     @Column({ type: "varchar", length: 50, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     department?: string;
 
     @Column({ type: "varchar", length: 50, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     city?: string;
 
     @Column({ type: "varchar", length: 50, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     state?: string;
 
     @Column({ type: "varchar", length: 10, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     pin_code?: string;
 
     @Column({ type: "varchar", length: 50, nullable: true })
-    @Field()
+    @Field({ nullable: true})
     country?: string;
 
     @Column({ type: "enum", enum: Status, default: Status.ACTIVE })
-    @Field()
+    @Field({ nullable: true})
     status?: Status;
 
     @CreateDateColumn()
@@ -87,14 +87,14 @@ export class Users {
     updated_at?: Date;
 
     @Column({ type: "timestamp", nullable: true })
-    @Field()
+    @Field({ nullable: true})
     deleted_at?: Date;
 
     @Column({ default: true })
     @Field()
     reset_password?: boolean;
 
-    @OneToMany(() => Assets, (asset) => asset.assigned_to)
+    @OneToMany(() => Assets, (asset) => asset.assignedTo)
     @Field(() => [Assets], { nullable: true })
     assets?: Assets[];
 

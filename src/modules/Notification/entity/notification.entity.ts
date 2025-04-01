@@ -30,12 +30,11 @@ export class Notifications {
     @Field()
     created_at?: Date;
 
-    @ManyToOne(() => Users, (user) => user.notifications, { onDelete: "CASCADE" })
+    @ManyToOne(() => Users, (user) => user.notifications, { onDelete: "CASCADE"})
     @JoinColumn({ name: "user_id" })
     userId?: Users;
-
-    @ManyToOne(() => Assets, { onDelete: "CASCADE" })
+    
+    @ManyToOne(() => Assets, (asset) => asset.notifications, { onDelete: "CASCADE" })
     @JoinColumn({ name: "asset_id" })
     assetId?: Assets;
-    
 }

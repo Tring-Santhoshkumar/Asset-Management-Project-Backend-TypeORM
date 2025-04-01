@@ -9,6 +9,7 @@ import { AssignedStatus } from "./entity/asset.enum";
 dotenv.config();
 
 export class AssetService {
+
     private assetRepository: Repository<Assets>;
     private userRepository: Repository<Users>;
 
@@ -26,20 +27,18 @@ export class AssetService {
     }
 
     async getAssetsByUserId(userId: string) {
-        return await this.assetRepository.find({ where: { assigned_to: userId, deleted_at:  IsNull() } });
+        return await this.assetRepository.find({ where: { assignedTo: {id : userId}, deleted_at:  IsNull() } });
     }
 
     async assignAsset(id: string, assigned_to: string) {
         const asset = await this.assetRepository.findOne({ where: { id } });
         if (!asset) throw new Error("Asset not found");
-
-        asset.assigned_to = assigned_to;
+        const user = await this.userRepository.findOne({ where: { id: assigned_to } });
+        if (!user) throw new Error("User not found");
+        asset.assignedTo = user;
         asset.assigned_status = AssignedStatus.ASSIGNED;
         asset.assigned_date = new Date();
         await this.assetRepository.save(asset);
-
-        const user = await this.userRepository.findOne({ where: { id: assigned_to } });
-
         if (user) {
             await sendEmail({
                 to: user.email,
@@ -63,6 +62,11 @@ export class AssetService {
         }
 
         return asset;
+    }
+
+    async requestAsset(id: string){
+        await this.assetRepository.findOne({ where: { id } });
+        return "Successfully requested asset!";
     }
 }
 

@@ -5,30 +5,59 @@ import { AssetService } from "./asset.service";
 
 
 @Resolver()
-export class AssetResolver{
-    private assetService = new AssetService();
+export class AssetResolver {
+
+    private assetService: AssetService;
+
+    constructor() {
+        this.assetService = new AssetService();
+    }
 
     @Query(() => [Assets])
-    async allAssets(){
-        return this.assetService.getAllAssets();
+    async allAssets() {
+        try {
+            return await this.assetService.getAllAssets();
+        } catch (error: any) {
+            throw new Error(error.message);
+        }
     }
 
-    @Query(() => Assets, { nullable: true})
-    async asset(@Arg("id") id: string){
-        return this.assetService.getAssetById(id);
+    @Query(() => Assets, { nullable: true })
+    async asset(@Arg("id") id: string) {
+        try {
+            return await this.assetService.getAssetById(id);
+        }
+        catch (error: any) {
+            throw new Error(error.message);
+        }
     }
 
-    @Query(() => [Assets], { nullable: true})
-    async assetByUserId(@Arg("assigned_to") assigned_to: string){
-        return this.assetService.getAssetsByUserId(assigned_to);
+    @Query(() => [Assets], { nullable: true })
+    async assetByUserId(@Arg("assigned_to") assignedTo: string) {
+        try {
+            return this.assetService.getAssetsByUserId(assignedTo);
+        }
+        catch (error: any) {
+            throw new Error(error.message);
+        }
     }
 
     @Mutation(() => Assets)
     async assignAsset(
         @Arg("id") id: string,
-        @Arg("assigned_to") assigned_to: string
-    ){
-        return this.assetService.assignAsset(id,assigned_to);
+        @Arg("assigned_to") assignedTo: string
+    ) {
+        try {
+            return this.assetService.assignAsset(id, assignedTo);
+        } catch (error: any) {
+            throw new Error(error.message);
+        }
+    }
+
+
+    @Mutation(() => String)
+    async requestAsset(@Arg("id") id: string) {
+        return await this.assetService.requestAsset(id);
     }
 
 }
