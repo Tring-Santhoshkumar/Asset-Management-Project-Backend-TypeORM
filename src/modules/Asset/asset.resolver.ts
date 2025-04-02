@@ -1,6 +1,7 @@
 import { Arg, Mutation, Query, Resolver } from "type-graphql";
 import { Assets } from "./entity/asset.entity";
 import { AssetService } from "./asset.service";
+import { addAssetInput } from "./entity/input";
 
 
 
@@ -18,7 +19,7 @@ export class AssetResolver {
         try {
             return await this.assetService.getAllAssets();
         } catch (error: any) {
-            throw new Error(error.message);
+            throw new Error(`Error in allAssets resolver ${error}`);
         }
     }
 
@@ -28,7 +29,7 @@ export class AssetResolver {
             return await this.assetService.getAssetById(id);
         }
         catch (error: any) {
-            throw new Error(error.message);
+            throw new Error(`Error in asset resolver ${error}`);
         }
     }
 
@@ -38,7 +39,17 @@ export class AssetResolver {
             return this.assetService.getAssetsByUserId(assignedTo);
         }
         catch (error: any) {
-            throw new Error(error.message);
+            throw new Error(`Error in assetByUserId resolver ${error}`);
+        }
+    }
+
+    @Mutation(() => [Assets])
+    async insertAssets(){
+        try{
+            return this.assetService.insertAsset();
+        }
+        catch (error: any) {
+            throw new Error(`Error in insertAssets resolver ${error}`);
         }
     }
 
@@ -50,14 +61,48 @@ export class AssetResolver {
         try {
             return this.assetService.assignAsset(id, assignedTo);
         } catch (error: any) {
-            throw new Error(error.message);
+            throw new Error(`Error in assignAsset resolver ${error}`);
         }
     }
 
 
     @Mutation(() => String)
     async requestAsset(@Arg("id") id: string) {
-        return await this.assetService.requestAsset(id);
+        try{
+            return await this.assetService.requestAsset(id);
+        }
+        catch(error : any){
+            throw new Error(`Error in requestAsset resolver ${error}`);
+        }
+    }
+
+    @Mutation(() => String)
+    async addAsset(@Arg("input", () => addAssetInput) input: addAssetInput){
+        try{
+            return await this.assetService.addAsset(input);
+        }catch(error : any){
+            throw new Error(`Error in addAsset resolver ${error}`);
+        }
+    }
+
+    @Mutation(() => String)
+    async deleteAsset(@Arg("id") id: string){
+        try{
+            return await this.assetService.deleteAsset(id);
+        }
+        catch(error : any){
+            throw new Error(`Error in deleteAsset resolver ${error}`);
+        }
+    }
+
+    @Mutation(() => String)
+    async deAssignAsset(@Arg("id") id: string){
+        try{
+            return await this.assetService.deAssignAsset(id);
+        }
+        catch(error : any){
+            throw new Error(`Error in deAssignAsset resolver ${error}`);
+        }
     }
 
 }

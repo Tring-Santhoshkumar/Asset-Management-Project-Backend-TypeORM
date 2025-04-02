@@ -9,7 +9,6 @@ import { sendEmail } from "../../utils/mailer/mailer";
 import { generatePassword } from "../../utils/password/password";
 
 dotenv.config();
-
 export class UserService {
     private userRepository = dataSource.getRepository(Users);
 
@@ -46,6 +45,7 @@ export class UserService {
 
     async loginUser(email: string, password: string) {
         try {
+            // console.log(email,password);
             const user = await this.userRepository.findOne({ where: { email } });
             // if (!user) return "No User";
             // if (!(await bcrypt.compare(password, user.password))) return "Invalid Password";
@@ -53,7 +53,7 @@ export class UserService {
             if (user?.status === 'Inactive' || !user || !(await bcrypt.compare(password, user.password))) {
                 return !user ? 'No User' : user.status === 'Inactive' ? "Inactive User" : 'Invalid Password';
             }
-            const token = jwt.sign({ id: user.id, role: user.role, reset_password: user.reset_password }, process.env.JWT_SECRET_KEY || "default_secret", { expiresIn: "1h" });
+            const token = jwt.sign({ id: user.id, role: user.role, reset_password: user.reset_password }, process.env.SECRET_KEY as any, { expiresIn: "1h" });
 
             if (user.reset_password) {
                 user.reset_password = false;

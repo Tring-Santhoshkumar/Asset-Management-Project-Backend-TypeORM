@@ -13,7 +13,7 @@ export class UserResolver {
     }
 
     @Query(() => [Users])
-    async getAllUsers() {
+    async users() {
         try {
             return await this.userService.getAllUsers();
         } catch (error: any) {
@@ -22,7 +22,7 @@ export class UserResolver {
     }
 
     @Query(() => Users, { nullable: true })
-    async getUserById(@Arg("id") id: string) {
+    async user(@Arg("id") id: string) {
         try {
             return await this.userService.getUserById(id);
         } catch (error: any) {
@@ -31,7 +31,7 @@ export class UserResolver {
     }
 
     @Mutation(() => Users)
-    async registerUser(
+    async register(
         @Arg("name") name: string,
         @Arg("email") email: string,
         @Arg("password") password: string,
@@ -45,7 +45,7 @@ export class UserResolver {
     }
 
     @Mutation(() => String)
-    async loginUser(
+    async login(
         @Arg("email") email: string,
         @Arg("password") password: string
     ) {

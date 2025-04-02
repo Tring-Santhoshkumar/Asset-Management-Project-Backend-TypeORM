@@ -1,16 +1,11 @@
+import { NotificationResolver } from "../src/modules/Notification/notification.resolver";
+import { AssetResolver } from "../src/modules/Asset/asset.resolver";
 import { UserResolver } from "../src/modules/user/user.resolver";
 import { buildSchema } from "type-graphql";
 
-// export const createSchema = () =>
-//   buildSchema({
-//     resolvers: [UserResolver],
-//     validate: false
-// });
-
-
-
 export async function createSchema() {
   return await buildSchema({
-    resolvers: [UserResolver],
+    resolvers: [UserResolver,AssetResolver,NotificationResolver],
+    validate: false
   });
 }
