@@ -1,5 +1,6 @@
-import { InputType, Field } from "type-graphql";
+import { InputType, Field, ObjectType, Int } from "type-graphql";
 import { AssetCondition, AssignedStatus } from "./asset.enum";
+import { Assets } from "./asset.entity";
 
 @InputType()
 export class addAssetInput {
@@ -16,11 +17,22 @@ export class addAssetInput {
     version!: string;
 
     @Field()
-    specificaions!: string;
+    specifications!: string;
 
     @Field(() => String)
     condition!: AssetCondition;
 
     @Field(() => String)
     assigned_status!: AssignedStatus;
+}
+
+
+
+@ObjectType()
+export class PaginatedAssets {
+    @Field(() => [Assets])
+    assets?: Assets[];
+    
+    @Field(() => Int)
+    totalCount?: number;
 }

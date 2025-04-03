@@ -1,14 +1,28 @@
-import { Resolver, Query, Mutation, Arg } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, Int } from "type-graphql";
 import { Notifications } from "./entity/notification.entity";
 import { notificationService } from "./notification.service";
+import { PaginatedNotifications } from "./entity/input";
 
 @Resolver()
 export class NotificationResolver {
-    @Query(() => [Notifications])
-    async getNotifications() {
+    @Query(() => PaginatedNotifications)
+    async getNotifications(
+        @Arg("page", () => Int) page: number,
+        @Arg("limit", () => Int) limit: number
+    ) {
         try {
-            return await notificationService.getAllNotifications();
+            return await notificationService.getAllNotifications(page, limit);
         } catch (error : any) {
+            throw new Error(error.message);
+        }
+    }
+
+    @Query(() => [Notifications])
+    async getAllNotificationsIcon(){
+        try{
+            return await notificationService.getAllNotificationsIcon();
+        }
+        catch(error : any){
             throw new Error(error.message);
         }
     }

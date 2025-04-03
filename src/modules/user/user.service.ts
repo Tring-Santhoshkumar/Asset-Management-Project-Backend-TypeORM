@@ -7,10 +7,19 @@ import dotenv from "dotenv";
 import { UpdateUserInput } from "./entity/input";
 import { sendEmail } from "../../utils/mailer/mailer";
 import { generatePassword } from "../../utils/password/password";
+import { Assets } from "../Asset/entity/asset.entity";
+import { Repository } from "typeorm";
+import { AssignedStatus } from "../Asset/entity/asset.enum";
 
 dotenv.config();
 export class UserService {
-    private userRepository = dataSource.getRepository(Users);
+    private userRepository: Repository<Users>;
+    private assetRepository: Repository<Assets>;
+
+    constructor(){
+        this.userRepository = dataSource.getRepository(Users);
+        this.assetRepository = dataSource.getRepository(Assets);
+    }
 
     async getAllUsers() {
         try {
@@ -126,8 +135,11 @@ export class UserService {
 
     async deleteUser(id: string) {
         try {
-            const user = await this.userRepository.findOne({ where: { id } });
+            const user = await this.userRepository.findOne({ where: { id }, relations: ["assets"] });
             if (!user) throw new Error("User not found");
+            if (user.assets && user.assets.length > 0) {
+                await this.assetRepository.update({ assignedTo: { id } },{ assignedTo: null as any, assigned_status: AssignedStatus.AVAILABLE });
+            }
             const result = await this.userRepository.update(id, { status: Status.INACTIVE, deleted_at: new Date() });
             if (result.affected) {
                 await sendEmail({

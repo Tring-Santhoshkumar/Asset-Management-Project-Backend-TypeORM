@@ -32,9 +32,11 @@ export class Notifications {
 
     @ManyToOne(() => Users, (user) => user.notifications, { onDelete: "CASCADE"})
     @JoinColumn({ name: "user_id" })
+    @Field(() => Users)
     userId?: Users;
     
     @ManyToOne(() => Assets, (asset) => asset.notifications, { onDelete: "CASCADE" })
     @JoinColumn({ name: "asset_id" })
+    @Field(() => Assets)
     assetId?: Assets;
 }

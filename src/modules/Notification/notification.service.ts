@@ -19,10 +19,17 @@ export class NotificationService {
         this.assetRepository = dataSource.getRepository(Assets);
     }
 
-    async getAllNotifications() {
+    async getAllNotifications(page: number, limit: number) {
+        const [notifications, totalCount] = await this.notificationRepository.findAndCount({ order: { created_at: "DESC" }, relations: ["userId", "assetId"], take: limit, skip: (page - 1) * limit });
+        return { notifications, totalCount };
+    }
+
+    async getAllNotificationsIcon(){
         return await this.notificationRepository.find({
+            where: { is_read: false },
             order: { created_at: "DESC" },
-            relations: ["user", "asset"]
+            relations: ["userId", "assetId"],
+            take: 3
         });
     }
 
@@ -30,7 +37,7 @@ export class NotificationService {
         return await this.notificationRepository.find({
             where: { userId: { id: user_id }},
             order: { created_at: "DESC" },
-            relations: ["user", "asset"]
+            relations: ["userId", "assetId"]
         });
     }
 
@@ -48,7 +55,7 @@ export class NotificationService {
     async getReadNotifications(id: string, choice: boolean) {
         const notification = await this.notificationRepository.findOne({
             where: { id },
-            relations: ["user", "asset"]
+            relations: ["userId", "assetId"]
         });
         if (!notification) throw new Error("Notification not found");
         if (choice) {

@@ -63,7 +63,7 @@ export class Assets {
     @Field({ nullable: true})
     deleted_at?: Date;
 
-    @ManyToOne(() => Users, (user) => user.assets)
+    @ManyToOne(() => Users, (user) => user.assets, { nullable: true})
     @JoinColumn({ name: "assigned_to" })
     @Field(() => Users, { nullable: true })
     assignedTo?: Users;
