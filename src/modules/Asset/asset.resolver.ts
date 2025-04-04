@@ -50,7 +50,7 @@ export class AssetResolver {
     @Query(() => [Assets], { nullable: true })
     async assetByUserId(@Arg("assigned_to") assignedTo: string) {
         try {
-            return this.assetService.getAssetsByUserId(assignedTo);
+            return await this.assetService.getAssetsByUserId(assignedTo);
         }
         catch (error: any) {
             throw new Error(`Error in assetByUserId resolver ${error}`);
@@ -60,7 +60,7 @@ export class AssetResolver {
     @Mutation(() => [Assets])
     async insertAssets() {
         try {
-            return this.assetService.insertAsset();
+            return await this.assetService.insertAsset();
         }
         catch (error: any) {
             throw new Error(`Error in insertAssets resolver ${error}`);
@@ -73,22 +73,13 @@ export class AssetResolver {
         @Arg("assigned_to") assignedTo: string
     ) {
         try {
-            return this.assetService.assignAsset(id, assignedTo);
+            return await this.assetService.assignAsset(id, assignedTo);
         } catch (error: any) {
             throw new Error(`Error in assignAsset resolver ${error}`);
         }
     }
 
 
-    @Mutation(() => String)
-    async requestAsset(@Arg("id") id: string) {
-        try {
-            return await this.assetService.requestAsset(id);
-        }
-        catch (error: any) {
-            throw new Error(`Error in requestAsset resolver ${error}`);
-        }
-    }
 
     @Mutation(() => String)
     async addAsset(@Arg("input", () => addAssetInput) input: addAssetInput) {
@@ -119,4 +110,18 @@ export class AssetResolver {
         }
     }
 
+    @Mutation(() => String)
+    async exchangeAsset(
+        @Arg("id") id: string,
+        @Arg("exchangeId") exchangeId: string,
+        @Arg("assigned_to") assignedTo: string,
+        @Arg("choice") choice: boolean
+    ){
+        try{
+            return await this.assetService.exchangeAsset(id, exchangeId, assignedTo, choice);
+        }
+        catch(error:any){
+            throw new Error(`Error in exchangeAsset resolver ${error}`);
+        }
+    }
 }

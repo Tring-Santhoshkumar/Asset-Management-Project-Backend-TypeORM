@@ -23,10 +23,20 @@ export class UserService {
 
     async getAllUsers() {
         try {
-            return this.userRepository.find({ relations: ["assets", "notifications"] });
+            return await this.userRepository.find({ relations: ["assets", "notifications"] });
         }
-        catch (error: any) {
-            throw new Error(error);
+        catch (error) {
+            throw new Error('Error in getAllUsers resolver' +error);
+        }
+    }
+
+    async getAllUsersPagination(page: number, limit: number){
+        try {
+            const [users, totalCount] = await this.userRepository.findAndCount({ relations: ["assets", "notifications"], take: limit, skip: (page - 1) * limit });
+            return { users, totalCount };
+        }
+        catch (error) {
+            throw new Error('Error in getAllUsers resolver' +error);
         }
     }
 
@@ -34,6 +44,9 @@ export class UserService {
         try {
             const user = await this.userRepository.findOne({ where: { id }, relations: ["assets", "notifications"] });
             if (!user) throw new Error("User not found");
+            if(user && user.dob){
+                user.dob = new Date(user.dob).toISOString().split("T")[0];
+            }
             return user;
         }
         catch (error: any) {

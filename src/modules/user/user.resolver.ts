@@ -1,8 +1,8 @@
-import { Resolver, Query, Mutation, Arg } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, Int } from "type-graphql";
 import { Users } from "./entity/user.entity";
 import { UserRole } from "./entity/user.enum";
 import { UserService } from "./user.service";
-import { UpdateUserInput } from "./entity/input";
+import { PaginatedUsers, UpdateUserInput } from "./entity/input";
 
 @Resolver()
 export class UserResolver {
@@ -18,6 +18,18 @@ export class UserResolver {
             return await this.userService.getAllUsers();
         } catch (error: any) {
             throw new Error(error.message);
+        }
+    }
+
+    @Query(() => PaginatedUsers)
+    async paginatedUsers(
+        @Arg("page", () => Int) page: number,
+        @Arg("limit", () => Int) limit: number
+    ){
+        try{
+            return await this.userService.getAllUsersPagination(page, limit);
+        }catch(error){
+            throw new Error('paginatedUsers resolver ' + error);
         }
     }
 

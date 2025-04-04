@@ -20,7 +20,7 @@ export class NotificationService {
     }
 
     async getAllNotifications(page: number, limit: number) {
-        const [notifications, totalCount] = await this.notificationRepository.findAndCount({ order: { created_at: "DESC" }, relations: ["userId", "assetId"], take: limit, skip: (page - 1) * limit });
+        const [notifications, totalCount] = await this.notificationRepository.findAndCount({ order: { is_read : "ASC" }, relations: ["userId", "assetId"], take: limit, skip: (page - 1) * limit });
         return { notifications, totalCount };
     }
 

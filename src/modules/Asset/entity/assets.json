@@ -1,0 +1,12 @@
+[
+    { "type": "Laptop", "serial_no": "TRL201", "name": "Dell XPS 15", "version": "2023", "specifications": "32GB RAM, 1TB SSD, Intel i9", "condition": "NEW", "assigned_status": "AVAILABLE" },
+    { "type": "Laptop", "serial_no": "TRL202", "name": "HP Spectre x360", "version": "2022", "specifications": "16GB RAM, 512GB SSD, Intel i7", "condition": "GOOD", "assigned_status": "AVAILABLE" },
+    { "type": "Laptop", "serial_no": "TRL203", "name": "Asus ROG Zephyrus", "version": "2024", "specifications": "64GB RAM, 2TB SSD, AMD Ryzen 9", "condition": "NEW", "assigned_status": "AVAILABLE" },
+    { "type": "Laptop", "serial_no": "TRL204", "name": "Acer Predator Helios", "version": "2023", "specifications": "32GB RAM, 1TB SSD, Intel i9", "condition": "NEEDS_REPAIR", "assigned_status": "AVAILABLE" },
+    { "type": "Laptop", "serial_no": "TRL205", "name": "Lenovo ThinkPad X1", "version": "2021", "specifications": "16GB RAM, 512GB SSD, Intel i7", "condition": "GOOD", "assigned_status": "AVAILABLE" },
+    { "type": "Phone", "serial_no": "TRL206", "name": "iPhone 15 Pro", "version": "2024", "specifications": "512GB, Titanium Blue", "condition": "NEW", "assigned_status": "AVAILABLE" },
+    { "type": "Phone", "serial_no": "TRL207", "name": "Samsung Galaxy Z Fold 5", "version": "2024", "specifications": "512GB, Phantom Silver", "condition": "GOOD", "assigned_status": "AVAILABLE" },
+    { "type": "Phone", "serial_no": "TRL208", "name": "Google Pixel 8", "version": "2024", "specifications": "256GB, Hazel", "condition": "NEW", "assigned_status": "AVAILABLE" },
+    { "type": "Tablet", "serial_no": "TRL209", "name": "Microsoft Surface Pro 9", "version": "2023", "specifications": "16GB RAM, 1TB SSD, 13 Display", "condition": "NEEDS_REPAIR", "assigned_status": "AVAILABLE" },
+    { "type": "Tablet", "serial_no": "TRL210", "name": "iPad Air", "version": "2022", "specifications": "M1 Chip, 256GB", "condition": "DAMAGED", "assigned_status": "AVAILABLE" }
+]

@@ -1,5 +1,6 @@
-import { InputType, Field } from "type-graphql";
+import { InputType, Field, ObjectType, Int } from "type-graphql";
 import { UserRole, Status } from "./user.enum";
+import { Users } from "./user.entity";
 
 @InputType()
 export class UpdateUserInput {
@@ -57,3 +58,15 @@ export class UpdateUserInput {
     @Field({ nullable: true })
     reset_password?: boolean;
 }
+
+
+
+@ObjectType()
+export class PaginatedUsers{
+    @Field(() => [Users])
+    users?: Users[];
+
+    @Field(() => Int)
+    totalCount?: number;
+}
+

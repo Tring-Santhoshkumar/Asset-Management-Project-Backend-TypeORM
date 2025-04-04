@@ -3,6 +3,7 @@ import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Up
 import { Status, UserRole } from "./user.enum";
 import { Assets } from "../../Asset/entity/asset.entity";
 import { Notifications } from "../../Notification/entity/notification.entity";
+import { GraphQLDate } from "graphql-iso-date";
 
 @Entity('users')
 @ObjectType()
@@ -27,8 +28,8 @@ export class Users {
     role!: UserRole;
 
     @Column({ type: "date", nullable: true })
-    @Field({ nullable: true})
-    dob?: Date;
+    @Field(() => GraphQLDate ,{nullable: true})
+    dob?: string;   
 
     @Column({ type: "varchar", length: 10, nullable: true })
     @Field({ nullable: true})

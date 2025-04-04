@@ -37,6 +37,7 @@
         "dotenv": "^16.4.7",
         "express": "^5.1.0",
         "graphql": "^16.10.0",
+        "graphql-iso-date": "^3.6.1",
         "graphql-scalars": "^1.24.2",
         "jsonwebtoken": "^9.0.2",
         "nodemailer": "^6.10.0",
@@ -52,6 +53,7 @@
         "uuid": "^11.1.0"
     },
     "devDependencies": {
+        "@types/graphql-iso-date": "^3.4.3",
         "cross-env": "^7.0.3",
         "ts-node": "^10.9.2"
     },

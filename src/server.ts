@@ -11,6 +11,7 @@ async function startServer() {
     const app = express() as any;
 
     await dataSource.initialize();
+
     console.log('Database is connected!');
 
     const schema = await createSchema();
@@ -22,9 +23,9 @@ async function startServer() {
         const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
         let decoded = null;
         if (token) {
-            try {
-                decoded = jwt.verify(token as string, process.env.SECRET_KEY as any);
-            } catch (error : any) {
+            try{
+                decoded = jwt.verify(token as string, process.env.SECRET_KEY as string);
+            }catch(error : any) {
                 throw new Error(error);
             }
         }
