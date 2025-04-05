@@ -1,220 +1,180 @@
-// import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-// import { AppDataSource } from "../config/data-source";
-// import { User } from "../entities/User";
-// import { sendEmail } from "../utils/Mail/mailer";
-// import { generatePassword } from "../utils/Password/generatePassword";
-// import dotenv from "dotenv";
-
-// dotenv.config();
-
-// const userRepository = AppDataSource.getRepository(User);
-
-// export const userService = {
-//     getAllUsers: async () => {
-//         try {
-//             const users = await userRepository.find({ relations: ["assets"] });
-//             return users;
-//         } catch (error) {
-//             throw new Error(`Error fetching users: ${error.message}`);
-//         }
-//     },
-
-//     getUserById: async (id: string) => {
-//         try {
-//             const user = await userRepository.findOne({
-//                 where: { id },
-//                 relations: ["assets"],
-//             });
-
-//             if (!user) {
-//                 throw new Error("User not found");
-//             }
-
-//             return { ...user, dob: user.dob ? user.dob.toISOString().split("T")[0] : null };
-//         } catch (error) {
-//             throw new Error(`Error in getUserById: ${error.message}`);
-//         }
-//     },
-
-//     registerUser: async (name: string, email: string, password: string, role: string) => {
-//         try {
-//             const hashedPassword = await bcrypt.hash(password, 10);
-//             const newUser = userRepository.create({ name, email, password: hashedPassword, role });
-//             await userRepository.save(newUser);
-//             return newUser;
-//         } catch (error) {
-//             throw new Error(`Error in registerUser: ${error.message}`);
-//         }
-//     },
-
-//     loginUser: async (email: string, password: string) => {
-//         try {
-//             const user = await userRepository.findOne({ where: { email } });
-
-//             if (!user) return "No User";
-//             if (!(await bcrypt.compare(password, user.password))) return "Invalid Password";
-//             if (user.status === "Inactive") return "Inactive User";
-
-//             const token = jwt.sign(
-//                 { id: user.id, role: user.role, reset_password: user.reset_password },
-//                 process.env.JWT_SECRET_KEY!,
-//                 { expiresIn: "1h" }
-//             );
-
-//             if (user.reset_password) {
-//                 user.reset_password = false;
-//                 await userRepository.save(user);
-//             }
-
-//             return token;
-//         } catch (error) {
-//             throw new Error(`Error in loginUser: ${error.message}`);
-//         }
-//     },
-
-//     changePassword: async (id: string, password: string) => {
-//         try {
-//             const hashedPassword = await bcrypt.hash(password, 10);
-//             const result = await userRepository.update(id, { password: hashedPassword });
-
-//             return result.affected ? "Successfully Changed Password!" : "Failed to Change Password.";
-//         } catch (error) {
-//             throw new Error(`Error in changePassword: ${error.message}`);
-//         }
-//     },
-
-//     addUser: async (name: string, email: string, role: string) => {
-//         try {
-//             const existingUser = await userRepository.findOne({ where: { email } });
-//             if (existingUser) throw new Error("User already exists.");
-
-//             const temporaryPassword = generatePassword();
-//             const hashedTempPassword = await bcrypt.hash(temporaryPassword, 10);
-
-//             await sendEmail({
-//                 to: email,
-//                 subject: "Your Temporary Password",
-//                 html: `<p>Your temporary password is: <b>${temporaryPassword}</b></p>`,
-//             });
-
-//             const newUser = userRepository.create({
-//                 name,
-//                 email,
-//                 password: hashedTempPassword,
-//                 role,
-//                 created_at: new Date(),
-//                 updated_at: new Date(),
-//             });
-
-//             await userRepository.save(newUser);
-
-//             return "User added successfully!";
-//         } catch (error) {
-//             throw new Error(error.message);
-//         }
-//     },
-
-//     updateUser: async (args: Partial<User>) => {
-//         try {
-//             const user = await userRepository.findOne({ where: { id: args.id } });
-//             if (!user) throw new Error("User not found");
-
-//             Object.assign(user, args);
-//             await userRepository.save(user);
-//             return user;
-//         } catch (error) {
-//             throw new Error(error.message);
-//         }
-//     },
-
-//     deleteUser: async (id: string) => {
-//         try {
-//             const user = await userRepository.findOne({ where: { id } });
-//             if (!user) throw new Error("User not found");
-
-//             user.status = "Inactive";
-//             user.deleted_at = new Date();
-//             await userRepository.save(user);
-
-//             await sendEmail({
-//                 to: user.email,
-//                 subject: "Your Account Has Been Deleted",
-//                 html: `<p>Your account has been deleted.</p>`,
-//             });
-
-//             return "User Deleted Successfully!";
-//         } catch (error) {
-//             throw new Error(error.message);
-//         }
-//     },
-// };
-
-
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt"
 import { Users } from "./entity/user.entity";
 import { Status, UserRole } from "./entity/user.enum";
 import dataSource from "../../database/data-source";
 import dotenv from "dotenv";
+import { UpdateUserInput } from "./entity/input";
+import { sendEmail } from "../../utils/mailer/mailer";
+import { generatePassword } from "../../utils/password/password";
+import { Assets } from "../Asset/entity/asset.entity";
+import { Repository } from "typeorm";
+import { AssignedStatus } from "../Asset/entity/asset.enum";
 
 dotenv.config();
-
 export class UserService {
-    private userRepository = dataSource.getRepository(Users);
+    private userRepository: Repository<Users>;
+    private assetRepository: Repository<Assets>;
+
+    constructor(){
+        this.userRepository = dataSource.getRepository(Users);
+        this.assetRepository = dataSource.getRepository(Assets);
+    }
 
     async getAllUsers() {
-        return this.userRepository.find({ relations: ["assets", "notifications"] });
+        try {
+            return await this.userRepository.find({ relations: ["assets", "notifications"] });
+        }
+        catch (error) {
+            throw new Error('Error in getAllUsers resolver' +error);
+        }
+    }
+
+    async getAllUsersPagination(page: number, limit: number){
+        try {
+            const [users, totalCount] = await this.userRepository.findAndCount({ relations: ["assets", "notifications"], take: limit, skip: (page - 1) * limit });
+            return { users, totalCount };
+        }
+        catch (error) {
+            throw new Error('Error in getAllUsers resolver' +error);
+        }
     }
 
     async getUserById(id: string) {
-        const user = await this.userRepository.findOne({ where: { id }, relations: ["assets", "notifications"] });
-        if (!user) throw new Error("User not found");
-        return user;
+        try {
+            const user = await this.userRepository.findOne({ where: { id }, relations: ["assets", "notifications"] });
+            if (!user) throw new Error("User not found");
+            if(user && user.dob){
+                user.dob = new Date(user.dob).toISOString().split("T")[0];
+            }
+            return user;
+        }
+        catch (error: any) {
+            throw new Error(`Error in getUserById: ${error.message}`)
+        }
     }
 
     async registerUser(name: string, email: string, password: string, role: UserRole) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = this.userRepository.create({ name, email, password: hashedPassword, role });
-        return await this.userRepository.save(newUser);
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const newUser = this.userRepository.create({ name, email, password: hashedPassword, role });
+            return this.userRepository.save(newUser);
+        }
+        catch (error: any) {
+            throw new Error(`Error in registerUser: ${error.message}`);
+        }
     }
 
     async loginUser(email: string, password: string) {
-        const user = await this.userRepository.findOne({ where: { email } });
-        if (!user) return "No User";
-        if (!(await bcrypt.compare(password, user.password))) return "Invalid Password";
-        if (user.status === "Inactive") return "Inactive User";
+        try {
+            // console.log(email,password);
+            const user = await this.userRepository.findOne({ where: { email } });
+            // if (!user) return "No User";
+            // if (!(await bcrypt.compare(password, user.password))) return "Invalid Password";
+            // if (user.status === "Inactive") return "Inactive User";
+            if (user?.status === 'Inactive' || !user || !(await bcrypt.compare(password, user.password))) {
+                return !user ? 'No User' : user.status === 'Inactive' ? "Inactive User" : 'Invalid Password';
+            }
+            const token = jwt.sign({ id: user.id, role: user.role, reset_password: user.reset_password }, process.env.SECRET_KEY as any, { expiresIn: "1h" });
 
-        const token = jwt.sign(
-            { id: user.id, role: user.role, reset_password: user.reset_password },
-            process.env.JWT_SECRET_KEY || "default_secret",
-            { expiresIn: "1h" }
-        );
-
-        if (user.reset_password) {
-            user.reset_password = false;
-            await this.userRepository.save(user);
+            if (user.reset_password) {
+                user.reset_password = false;
+                await this.userRepository.save(user);
+            }
+            return token;
+        } catch (error: any) {
+            throw new Error(`Error in loginUser: ${error.message}`);
         }
-
-        return token;
     }
 
     async changePassword(id: string, password: string) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const result = await this.userRepository.update(id, { password: hashedPassword });
-        return result.affected ? "Successfully Changed Password!" : "Failed to Change Password.";
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const result = await this.userRepository.update(id, { password: hashedPassword });
+            return result.affected ? "Successfully Changed Password!" : "Failed to Change Password.";
+        }
+        catch (error: any) {
+            throw new Error(`Error in changePassword: ${error.message}`);
+        }
     }
 
-    // async updateUser(input: Partial<Users>) {
-    //     const user = await this.userRepository.findOne({ where: { id: input.id } });
-    //     if (!user) throw new Error("User not found");
+    async addUser(name: string, email: string, role: UserRole) {
+        try {
+            const alreadyExist = await this.userRepository.findOne({ where: { email } });
+            if (alreadyExist) throw new Error("User already exists.");
+            const temporaryPassword = generatePassword();
+            const hashedTempPassword = await bcrypt.hash(temporaryPassword, 10);
+            const newUser = this.userRepository.create({ name, email, password: hashedTempPassword, role, created_at: new Date(), updated_at: new Date() });
+            await this.userRepository.save(newUser);
+            await sendEmail({
+                to: email,
+                subject: "Your Temporary Password",
+                html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                <h2 style="color: #0056b3;">Welcome to Tringapps!</h2>
+                <p>Dear ${name},</p>
+                <p>We are pleased to inform you that your account has been successfully created on our system.</p>
+                <h3>Your Account Details:</h3>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Temporary Password:</strong> <i>${temporaryPassword}</i></p>
+                <p>For security reasons, we strongly recommend that you log in and update your password immediately.</p>
+                <h3>How to Log In:</h3>
+                <p>Go to our login page: <a href=${process.env.LOGIN_URL} style="color: #0056b3;">Login</a></p>
+                <p>Enter your email and the temporary password provided above.</p>
+                <p>Follow the on-screen instructions to set up a new password.</p>
+                <p>If you did not request this account, please contact our support team immediately.</p>
+                <hr />
+                <p>Best regards,</p>
+                <p><strong>Tringapps Research Labs Pvt Ltd</strong></p>
+                <p>Email: <a href="mailto:${process.env.ADMIN_EMAIL}">${process.env.ADMIN_EMAIL}</a></p>
+                </div>`
+            });
+            return "User added successfully!";
+        } catch (err: any) {
+            throw new Error(`Error in add user ${err}`);
+        }
+    }
 
-    //     Object.assign(user, input);
-    //     return await this.userRepository.save(user);
-    // }
+    async updateUser(input: UpdateUserInput) {
+        try {
+            const user = await this.userRepository.findOne({ where: { id: input.id } });
+            if (!user) throw new Error("User not found");
+            Object.assign(user, input);
+            return await this.userRepository.save(user);
+        }
+        catch (error: any) {
+            throw new Error(`Error in update user : ${error.message}`);
+        }
+    }
 
     async deleteUser(id: string) {
-        const result = await this.userRepository.update(id, { status: Status.INACTIVE, deleted_at: new Date() });
-        return result.affected ? "User Deleted Successfully!" : "Failed to Delete User.";
+        try {
+            const user = await this.userRepository.findOne({ where: { id }, relations: ["assets"] });
+            if (!user) throw new Error("User not found");
+            if (user.assets && user.assets.length > 0) {
+                await this.assetRepository.update({ assignedTo: { id } },{ assignedTo: null as any, assigned_status: AssignedStatus.AVAILABLE });
+            }
+            const result = await this.userRepository.update(id, { status: Status.INACTIVE, deleted_at: new Date() });
+            if (result.affected) {
+                await sendEmail({
+                    to: user.email,
+                    subject: "Your Account Has Been Deleted",
+                    html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                    <h2 style="color: #d9534f;">Important Notice: Account Deletion</h2>
+                    <p>Dear ${user.name},</p>
+                    <p>We regret to inform you that your account with <strong>Tringapps</strong> has been deleted by an administrator. As a result, you will no longer have access to our services.</p>
+                    <p>If you believe this was done in error or require further assistance, please contact our support team.</p>
+                    <hr />
+                    <p>Best regards,</p>
+                    <p><strong>Tringapps Research Labs Pvt Ltd</strong></p>
+                    <p>Email: <a href="mailto:${process.env.ADMIN_EMAIL}">${process.env.ADMIN_EMAIL}</a></p>
+                    </div>`
+                });
+                return "User Deleted Successfully!";
+            }
+            return "Failed to Delete User.";
+        }
+        catch (error: any) {
+            throw new Error(`Error in delete user : ${error}`);
+        }
     }
 }

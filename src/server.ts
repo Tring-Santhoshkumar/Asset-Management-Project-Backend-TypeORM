@@ -1,89 +1,43 @@
-import { ApolloServer } from "@apollo/server";
+import { ApolloServer } from "apollo-server-express";
 import dataSource from "./database/data-source";
-import { startStandaloneServer } from '@apollo/server/standalone'
 import { createSchema } from "./schema";
-import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import express from "express"
-import cors from "cors";
-import { expressMiddleware } from "@apollo/server/express4"
-import bodyParser from "body-parser";
-const app = express();
-const PORT = 3001;
+import express from 'express';
+import jwt from 'jsonwebtoken';
 dotenv.config();
 
-dataSource.initialize().then( async ()  => {
-        
-        // await dataSource.initialize();
-        // console.log('Database is connected!');
-        const schema = await createSchema();
-        // app.use(cors({ origin: 'http://localhost:3000', credentials: true}));
-        // app.use(express.json())
-        const server = new ApolloServer({
-            schema
-        })
-        await server.start();
-        console.log("Server Started")
-        app.use(
-            "/graphql",
-            cors({ origin: 'http://localhost:3000', credentials: true}),
-            express.json(),
-            expressMiddleware(server, {
-                context: async ({ req }) => {
-                    const authHeader = req.headers.authorization || "";
-                    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
-                    let decoded = null;
-                    if (token) {
-                        try {
-                            decoded = jwt.verify(token, process.env.SECRET_KEY || "santhosh123");
-                            console.log("DECODED:", decoded);
-                        } catch (err) {
-                            console.error("Error in token verification", err);
-                        }
-                    }
-                    return { token, decoded };
-                }
-            })
-        );
-        app.listen(PORT, () => {
-            console.log(` Server is running on http://localhost:${PORT}/graphql`);
-        });
-}).catch((error) => {
-    console.log('error',error);
-})
-// }
+async function startServer() {
 
-// startServer();
+    const app = express() as any;
 
+    await dataSource.initialize();
 
-//             context: ({ req }) => {
-//                 const authHeader = req.headers.authorization || "";
-//                 const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
-//                 let decoded = null;
-//                 if (token) {
-//                     try{
-//                         decoded = jwt.verify(token, process.env.SECRET_KEY || 'santhosh123');
-//                         console.log("DECODED : ", decoded);
-//                     }
-//                     catch(err){
-//                         console.error('Error in token verification',err);
-//                     }
-//                 }
-//                 return { token, decoded };
-//             }
-//         })
+    console.log('Database is connected!');
 
+    const schema = await createSchema();
+    
+    const apolloServer = new ApolloServer({ 
+        schema,
+        context: ({ req }) => {
+        const authHeader = req.headers.authorization || '';
+        const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+        let decoded = null;
+        if (token) {
+            try{
+                decoded = jwt.verify(token as string, process.env.SECRET_KEY as string);
+            }catch(error : any) {
+                throw new Error(error);
+            }
+        }
+        return { token, decoded };
+    } 
+    });
+    
+    await apolloServer.start();
 
-
-//         const { url } = await startStandaloneServer(server, {
-//             listen: { port: 3001 }
-//         })
-//         console.log( `Server is running on ${url}`);
-
-//     }
-//     catch(error){
-//         console.log("Error in server",error);
-//     }
-// }
-
-// startServer();
+    apolloServer.applyMiddleware({ app });
+  
+    app.listen(process.env.BACKEND_PORT, () => console.log(`Server is running on http://localhost:${process.env.BACKEND_PORT}/graphql`));
+  }
+  
+startServer();

@@ -36,6 +36,7 @@ export class Assets {
     condition!: AssetCondition;
 
     @Column({ type: "int", nullable: true })
+    @Field({ nullable: true})
     assigned_to?: number;
 
     @Column({ type: "enum", enum: AssignedStatus, default: AssignedStatus.AVAILABLE })
@@ -43,11 +44,11 @@ export class Assets {
     assigned_status?: AssignedStatus;
 
     @Column({ type: "timestamp", nullable: true })
-    @Field()
+    @Field({ nullable: true})
     assigned_date?: Date;
 
     @Column({ type: "timestamp", nullable: true })
-    @Field()
+    @Field({ nullable: true})
     return_date?: Date;
 
     @CreateDateColumn()
@@ -59,12 +60,14 @@ export class Assets {
     updated_at?: Date;
 
     @Column({ type: "timestamp", nullable: true })
-    @Field()
+    @Field({ nullable: true})
     deleted_at?: Date;
 
-    @ManyToOne(() => Users, { nullable: true, onDelete: "SET NULL" })
+    @ManyToOne(() => Users, (user) => user.assets, { nullable: true})
     @JoinColumn({ name: "assigned_to" })
+    @Field(() => Users, { nullable: true })
     assignedTo?: Users;
+
 
     @OneToMany(() => Notifications, (notification) => notification.assetId)
     @Field(() => [Notifications], { nullable: true})
