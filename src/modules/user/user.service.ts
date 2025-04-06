@@ -54,6 +54,21 @@ export class UserService {
         }
     }
 
+    async getLatestUpdatedUser(){
+        try{
+            const users = await this.userRepository.find({ order: { updated_at: "DESC" }});
+            if(!users){
+                throw new Error("User not found");
+            }
+            const latest = users[0];
+            const oldest = users[users.length -1];
+            return { latest, oldest};
+        }
+        catch(error){
+            throw new Error('Error in getLatestUpdatedUser ' + error);
+        }
+    }
+
     async registerUser(name: string, email: string, password: string, role: UserRole) {
         try {
             const hashedPassword = await bcrypt.hash(password, 10);

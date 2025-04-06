@@ -72,4 +72,9 @@ export class Assets {
     @OneToMany(() => Notifications, (notification) => notification.assetId)
     @Field(() => [Notifications], { nullable: true})
     notifications?: Notifications[];
+
+
+    @OneToMany(() => Notifications, (notification) => notification.exchangeAssetId)
+    @Field(() => [Notifications], { nullable: true})
+    exChangeNotifications?: Notifications[];
 }

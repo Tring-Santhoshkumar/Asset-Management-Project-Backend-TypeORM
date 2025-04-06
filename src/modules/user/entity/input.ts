@@ -70,3 +70,12 @@ export class PaginatedUsers{
     totalCount?: number;
 }
 
+
+@ObjectType()
+export class UpdatedUsers{
+    @Field(() => Users)
+    latest?: Users;
+
+    @Field(() => Users)
+    oldest?: Users;
+}
