@@ -5,6 +5,7 @@
     "scripts": {
         "dev": "nodemon ./src/server.ts",
         "build": "tsc",
+        "test": "jest --coverage",
         "start": "npm run build && ts-node ./dist/server.js",
         "start:local": "cross-env NODE_ENV=dev npm run db:migrate && cross-env NODE_ENV=dev ts-node ./src/server.ts --watch",
         "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js --d ./src/database/data-source.ts",
@@ -54,7 +55,12 @@
     },
     "devDependencies": {
         "@types/graphql-iso-date": "^3.4.3",
+        "@types/jest": "^29.5.14",
+        "@types/supertest": "^6.0.3",
         "cross-env": "^7.0.3",
+        "jest": "^29.7.0",
+        "supertest": "^7.1.0",
+        "ts-jest": "^29.3.1",
         "ts-node": "^10.9.2"
     },
     "repository": {

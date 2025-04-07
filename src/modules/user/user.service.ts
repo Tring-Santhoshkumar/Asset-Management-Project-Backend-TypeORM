@@ -15,7 +15,7 @@ dotenv.config();
 export class UserService {
     private userRepository: Repository<Users>;
     private assetRepository: Repository<Assets>;
-
+    
     constructor(){
         this.userRepository = dataSource.getRepository(Users);
         this.assetRepository = dataSource.getRepository(Assets);
@@ -26,7 +26,7 @@ export class UserService {
             return await this.userRepository.find({ relations: ["assets", "notifications"] });
         }
         catch (error) {
-            throw new Error('Error in getAllUsers resolver' +error);
+            throw new Error('Error in getAllUsers resolver ' + error);
         }
     }
 
