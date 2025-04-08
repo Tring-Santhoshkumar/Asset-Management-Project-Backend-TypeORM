@@ -15,7 +15,7 @@ dotenv.config();
 export class UserService {
     private userRepository: Repository<Users>;
     private assetRepository: Repository<Assets>;
-
+    
     constructor(){
         this.userRepository = dataSource.getRepository(Users);
         this.assetRepository = dataSource.getRepository(Assets);
@@ -26,7 +26,7 @@ export class UserService {
             return await this.userRepository.find({ relations: ["assets", "notifications"] });
         }
         catch (error) {
-            throw new Error('Error in getAllUsers resolver' +error);
+            throw new Error('Error in getAllUsers resolver ' + error);
         }
     }
 
@@ -51,6 +51,21 @@ export class UserService {
         }
         catch (error: any) {
             throw new Error(`Error in getUserById: ${error.message}`)
+        }
+    }
+
+    async getLatestUpdatedUser(){
+        try{
+            const users = await this.userRepository.find({ order: { updated_at: "DESC" }});
+            if(!users){
+                throw new Error("User not found");
+            }
+            const latest = users[0];
+            const oldest = users[users.length -1];
+            return { latest, oldest};
+        }
+        catch(error){
+            throw new Error('Error in getLatestUpdatedUser ' + error);
         }
     }
 

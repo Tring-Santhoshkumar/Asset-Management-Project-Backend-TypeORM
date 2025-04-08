@@ -2,7 +2,7 @@ import { Resolver, Query, Mutation, Arg, Int } from "type-graphql";
 import { Users } from "./entity/user.entity";
 import { UserRole } from "./entity/user.enum";
 import { UserService } from "./user.service";
-import { PaginatedUsers, UpdateUserInput } from "./entity/input";
+import { PaginatedUsers, UpdatedUsers, UpdateUserInput } from "./entity/input";
 
 @Resolver()
 export class UserResolver {
@@ -39,6 +39,16 @@ export class UserResolver {
             return await this.userService.getUserById(id);
         } catch (error: any) {
             throw new Error(error.message);
+        }
+    }
+
+    @Query(() => UpdatedUsers)
+    async latestUpdatedUser(){
+        try{
+            return await this.userService.getLatestUpdatedUser();
+        }
+        catch(error: any){
+            throw new Error(error);
         }
     }
 

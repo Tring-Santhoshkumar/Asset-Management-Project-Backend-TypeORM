@@ -5,6 +5,10 @@ import { PaginatedNotifications } from "./entity/input";
 
 @Resolver()
 export class NotificationResolver {
+
+    constructor(){
+        console.log("first");
+    }
     @Query(() => PaginatedNotifications)
     async getNotifications(
         @Arg("page", () => Int) page: number,
@@ -50,6 +54,22 @@ export class NotificationResolver {
         }
     }
 
+
+    @Mutation(() => Notifications)
+    async createExchangeNotification(
+        @Arg("user_id") userId: string,
+        @Arg("asset_id") assetId: string,
+        @Arg("exchange_asset_id") exchangeAssetId: string,
+        @Arg("message") message: string
+    ){
+        try {
+            return await notificationService.getCreateExchangeNotification(userId, assetId, exchangeAssetId, message);
+        } 
+        catch (error: any) {
+            throw new Error(error.message);
+        }
+    }
+
     @Mutation(() => String)
     async readNotifications(
         @Arg("id") id: string,
@@ -60,6 +80,21 @@ export class NotificationResolver {
         }
          catch (error: any) {
             throw new Error(error.message);
+        }
+    }
+
+    @Mutation(() => String)
+    static async exchangeAsset(
+        @Arg("assetId") assetId: string,
+        @Arg("exchangeId") exchangeId: string,
+        @Arg("assigned_to") assignedTo: string,
+        @Arg("choice") choice: boolean
+    ){
+        try{
+            return await notificationService.getReadExchangeNotifications(assetId, exchangeId, assignedTo, choice);
+        }
+        catch(error:any){
+            throw new Error(`Error in exchangeAsset resolver ${error}`);
         }
     }
 }

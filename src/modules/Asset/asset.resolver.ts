@@ -109,19 +109,4 @@ export class AssetResolver {
             throw new Error(`Error in deAssignAsset resolver ${error}`);
         }
     }
-
-    @Mutation(() => String)
-    async exchangeAsset(
-        @Arg("id") id: string,
-        @Arg("exchangeId") exchangeId: string,
-        @Arg("assigned_to") assignedTo: string,
-        @Arg("choice") choice: boolean
-    ){
-        try{
-            return await this.assetService.exchangeAsset(id, exchangeId, assignedTo, choice);
-        }
-        catch(error:any){
-            throw new Error(`Error in exchangeAsset resolver ${error}`);
-        }
-    }
 }

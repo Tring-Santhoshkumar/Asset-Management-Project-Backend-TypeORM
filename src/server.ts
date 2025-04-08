@@ -26,6 +26,7 @@ async function startServer() {
             try{
                 decoded = jwt.verify(token as string, process.env.SECRET_KEY as string);
             }catch(error : any) {
+                console.log('JWT',error);
                 throw new Error(error);
             }
         }
@@ -38,6 +39,6 @@ async function startServer() {
     apolloServer.applyMiddleware({ app });
   
     app.listen(process.env.BACKEND_PORT, () => console.log(`Server is running on http://localhost:${process.env.BACKEND_PORT}/graphql`));
-  }
-  
+}
+
 startServer();

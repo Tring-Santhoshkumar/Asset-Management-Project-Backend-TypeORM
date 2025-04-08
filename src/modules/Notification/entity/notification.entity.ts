@@ -39,4 +39,10 @@ export class Notifications {
     @JoinColumn({ name: "asset_id" })
     @Field(() => Assets)
     assetId?: Assets;
+
+    @ManyToOne(() => Assets,(asset) => asset.exChangeNotifications, { onDelete: "CASCADE" })
+    @JoinColumn({ name: "exchange_asset_id" })
+    @Field(() => Assets, { nullable: true })
+    exchangeAssetId?: Assets;
+    
 }
