@@ -6,16 +6,14 @@ import { PaginatedNotifications } from "./entity/input";
 @Resolver()
 export class NotificationResolver {
 
-    constructor(){
-        console.log("first");
-    }
     @Query(() => PaginatedNotifications)
     async getNotifications(
         @Arg("page", () => Int) page: number,
-        @Arg("limit", () => Int) limit: number
+        @Arg("limit", () => Int) limit: number,
+        @Arg("status", () => String, { nullable: true }) status?: string
     ) {
         try {
-            return await notificationService.getAllNotifications(page, limit);
+            return await notificationService.getAllNotifications(page, limit, status);
         } catch (error : any) {
             throw new Error(error.message);
         }
@@ -85,13 +83,14 @@ export class NotificationResolver {
 
     @Mutation(() => String)
     static async exchangeAsset(
+        @Arg("id") id: string,
         @Arg("assetId") assetId: string,
         @Arg("exchangeId") exchangeId: string,
         @Arg("assigned_to") assignedTo: string,
         @Arg("choice") choice: boolean
     ){
         try{
-            return await notificationService.getReadExchangeNotifications(assetId, exchangeId, assignedTo, choice);
+            return await notificationService.getReadExchangeNotifications(id,assetId, exchangeId, assignedTo, choice);
         }
         catch(error:any){
             throw new Error(`Error in exchangeAsset resolver ${error}`);

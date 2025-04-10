@@ -12,7 +12,10 @@ import { Repository } from "typeorm";
 import { AssignedStatus } from "../Asset/entity/asset.enum";
 
 dotenv.config();
+const userNull:string = "User not found";
+
 export class UserService {
+
     private userRepository: Repository<Users>;
     private assetRepository: Repository<Assets>;
     
@@ -30,9 +33,10 @@ export class UserService {
         }
     }
 
-    async getAllUsersPagination(page: number, limit: number){
+    async getAllUsersPagination(page: number, limit: number, role?: UserRole){
         try {
-            const [users, totalCount] = await this.userRepository.findAndCount({ relations: ["assets", "notifications"], take: limit, skip: (page - 1) * limit });
+            const [users, totalCount] = await this.userRepository.findAndCount({ where: role ? { role } : {}, 
+                relations: ["assets", "notifications"], take: limit, skip: (page - 1) * limit });
             return { users, totalCount };
         }
         catch (error) {
@@ -43,7 +47,9 @@ export class UserService {
     async getUserById(id: string) {
         try {
             const user = await this.userRepository.findOne({ where: { id }, relations: ["assets", "notifications"] });
-            if (!user) throw new Error("User not found");
+            if (!user){
+                throw new Error(userNull);
+            }
             if(user && user.dob){
                 user.dob = new Date(user.dob).toISOString().split("T")[0];
             }
@@ -58,7 +64,7 @@ export class UserService {
         try{
             const users = await this.userRepository.find({ order: { updated_at: "DESC" }});
             if(!users){
-                throw new Error("User not found");
+                throw new Error(userNull);
             }
             const latest = users[0];
             const oldest = users[users.length -1];
@@ -82,11 +88,7 @@ export class UserService {
 
     async loginUser(email: string, password: string) {
         try {
-            // console.log(email,password);
             const user = await this.userRepository.findOne({ where: { email } });
-            // if (!user) return "No User";
-            // if (!(await bcrypt.compare(password, user.password))) return "Invalid Password";
-            // if (user.status === "Inactive") return "Inactive User";
             if (user?.status === 'Inactive' || !user || !(await bcrypt.compare(password, user.password))) {
                 return !user ? 'No User' : user.status === 'Inactive' ? "Inactive User" : 'Invalid Password';
             }
@@ -152,7 +154,7 @@ export class UserService {
     async updateUser(input: UpdateUserInput) {
         try {
             const user = await this.userRepository.findOne({ where: { id: input.id } });
-            if (!user) throw new Error("User not found");
+            if (!user) throw new Error(userNull);
             Object.assign(user, input);
             return await this.userRepository.save(user);
         }
@@ -164,7 +166,7 @@ export class UserService {
     async deleteUser(id: string) {
         try {
             const user = await this.userRepository.findOne({ where: { id }, relations: ["assets"] });
-            if (!user) throw new Error("User not found");
+            if (!user) throw new Error(userNull);
             if (user.assets && user.assets.length > 0) {
                 await this.assetRepository.update({ assignedTo: { id } },{ assignedTo: null as any, assigned_status: AssignedStatus.AVAILABLE });
             }
@@ -193,3 +195,5 @@ export class UserService {
         }
     }
 }
+
+

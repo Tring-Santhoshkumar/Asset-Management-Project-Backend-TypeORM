@@ -22,27 +22,26 @@ export class AssetService {
     }
 
     async getAllAssets() {
-        return await this.assetRepository.find({ where: { deleted_at: IsNull() }, relations: ["assignedTo"] });
+        return this.assetRepository.find({ where: { deleted_at: IsNull() }, relations: ["assignedTo"] });
     }
 
-    async getAllAssetsPagination(page: number, limit: number){
-        // const next = (page - 1) * limit;
-        const [assets, totalCount] = await this.assetRepository.findAndCount({ where: { deleted_at: IsNull() }, relations: ["assignedTo"], take: limit, skip: (page - 1) * limit });
+    async getAllAssetsPagination(page: number, limit: number, assigned_status?: AssignedStatus) {
+        const [assets, totalCount] = await this.assetRepository.findAndCount({ where: { ...(assigned_status ? { assigned_status } : {}), deleted_at: IsNull() }, 
+        relations: ["assignedTo"], take: limit, skip: (page - 1) * limit });
         return { assets, totalCount };
     }
 
     async getAssetById(id: string) {
-        return await this.assetRepository.findOne({ where: { id, deleted_at: IsNull() }, relations: ["assignedTo"] });
+        return this.assetRepository.findOne({ where: { id, deleted_at: IsNull() }, relations: ["assignedTo"] });
     }
 
     async getAssetsByUserId(userId: string) {
-        return await this.assetRepository.find({ where: { assignedTo: { id: userId }, deleted_at: IsNull() }, relations: ["assignedTo"] });
+        return this.assetRepository.find({ where: { assignedTo: { id: userId }, deleted_at: IsNull() }, relations: ["assignedTo"] });
     }
 
     async insertAsset() {
         const filePath = path.join(__dirname, 'entity', 'assets.json');
         const data = await readFile(filePath, 'utf-8');
-        // console.log('Json',data);
         let assets = JSON.parse(data);
         assets = assets.map((asset: { condition: string; assigned_status: string }) => ({
             ...asset,
@@ -50,15 +49,19 @@ export class AssetService {
             assigned_status: AssignedStatus[asset.assigned_status as keyof typeof AssignedStatus]
         }));
         const addedAsset = this.assetRepository.create(assets);
-        return await this.assetRepository.save(addedAsset);
-    }   
+        return this.assetRepository.save(addedAsset);
+    }
 
     async assignAsset(id: string, assigned_to: string) {
-        try{
+        try {
             const asset = await this.assetRepository.findOne({ where: { id } });
-            if (!asset) throw new Error("Asset not found in assignAsset");
+            if (!asset) {
+                throw new Error("Asset not found in assignAsset");
+            }
             const user = await this.userRepository.findOne({ where: { id: assigned_to } });
-            if (!user) throw new Error("User not found in assignAsset");
+            if (!user) {
+                throw new Error("User not found in assignAsset");
+            }
             asset.assignedTo = user;
             asset.assigned_status = AssignedStatus.ASSIGNED;
             asset.assigned_date = new Date();
@@ -85,7 +88,7 @@ export class AssetService {
                 });
             }
             return asset;
-        }catch(error : any){
+        } catch (error: any) {
             throw new Error(`Error in assignAsset Service ${error}`)
         }
     }
@@ -105,12 +108,12 @@ export class AssetService {
     async deleteAsset(id: string) {
         try {
             const asset = await this.assetRepository.findOne({ where: { id, assigned_status: AssignedStatus.ASSIGNED } });
-            if(!asset){
+            if (!asset) {
                 throw new Error("Asset not found in deleteAsset");
             }
             const user = await this.userRepository.findOne({ where: { id: asset.assignedTo?.id } });
             await this.assetRepository.update(id, { deleted_at: new Date(), assignedTo: null as any, assigned_status: AssignedStatus.AVAILABLE });
-            if(user){
+            if (user) {
                 await sendEmail({
                     to: user.email,
                     subject: `Assigned Asset is removed`,
@@ -136,13 +139,30 @@ export class AssetService {
         }
     }
 
-    async deAssignAsset(id: string){
-        try{
-            const asset = await this.assetRepository.update(id,{ assigned_to: null as any, assigned_status: AssignedStatus.AVAILABLE, assigned_date: null as any, return_date: new Date()});
+    async deAssignAsset(id: string) {
+        try {
+            const assets = await this.assetRepository.findOne({ where: { id } });
+            const user = await this.userRepository.findOne({ where: { id: assets?.assigned_to } });
+            const asset = await this.assetRepository.update(id, { assigned_to: null as any, assigned_status: AssignedStatus.AVAILABLE, assigned_date: null as any, return_date: new Date() });
+            if (user) {
+                await sendEmail({
+                    to: user.email,
+                    subject: `Assigned Asset is removed`,
+                    html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
+                        <h2 style="color: #d9534f;">Your Assigned Asset is Removed</h2>
+                        <p>Dear ${user.name},</p>
+                        <p>We want to inform you that an asset previously assigned to you has been removed for you.</p>
+                        <p>Best regards,</p>
+                        <p><strong>Tringapps Research Labs Pvt Ltd</strong></p>
+                        <p>Email: <a href="mailto:${process.env.ADMIN_EMAIL}">${process.env.ADMIN_EMAIL}</a></p>
+                        </div>`
+                })
+            }
             return asset.affected ? "Asset De-Assigned Successfully!" : "Invalid asset de-assigning!";
-        }catch(error){
+        } catch (error) {
             throw new Error(`Error in deAssignAsset Service` + error);
         }
     }
 }
 export const assetService = new AssetService();
+

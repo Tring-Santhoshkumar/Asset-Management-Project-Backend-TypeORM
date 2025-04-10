@@ -12,23 +12,25 @@ export class NotificationService {
     private notificationRepository: Repository<Notifications>;
     private userRepository: Repository<Users>;
     private assetRepository: Repository<Assets>;
-    // private notificationResolver: NotificationResolver;
 
     constructor() {
-        
         this.notificationRepository = dataSource.getRepository(Notifications);
         this.userRepository = dataSource.getRepository(Users);
         this.assetRepository = dataSource.getRepository(Assets);
-        // this.notificationResolver =  new NotificationResolver();
     }
 
-    async getAllNotifications(page: number, limit: number) {
-        const [notifications, totalCount] = await this.notificationRepository.findAndCount({ order: { is_read : "ASC", created_at: "DESC" }, relations: ["userId", "assetId", "exchangeAssetId"], take: limit, skip: (page - 1) * limit });
+    async getAllNotifications(page: number, limit: number, status?: string) {
+        const where: any = {};
+        if (status) {
+          where[status] = true;
+        }
+        const [notifications, totalCount] = await this.notificationRepository.findAndCount({ where, order: { is_read : "ASC", created_at: "DESC" }, 
+            relations: ["userId", "assetId", "exchangeAssetId"], take: limit, skip: (page - 1) * limit });
         return { notifications, totalCount };
     }
 
     async getAllNotificationsIcon(){
-        return await this.notificationRepository.find({
+        return this.notificationRepository.find({
             where: { is_read: false },
             order: { created_at: "DESC" },
             relations: ["userId", "assetId"],
@@ -37,7 +39,7 @@ export class NotificationService {
     }
 
     async getAllNotificationsById(user_id: string) {
-        return await this.notificationRepository.find({
+        return this.notificationRepository.find({
             where: { userId: { id: user_id }},
             order: { created_at: "DESC" },
             relations: ["userId", "assetId"]
@@ -52,7 +54,7 @@ export class NotificationService {
             throw new Error("User or Asset not found");
         }
         const notification = this.notificationRepository.create({ userId: user, assetId: asset, message });
-        return await this.notificationRepository.save(notification);
+        return this.notificationRepository.save(notification);
     }
 
     async getCreateExchangeNotification(user_id: string, asset_id: string, exchange_asset_id: string, message: string){
@@ -63,7 +65,7 @@ export class NotificationService {
             throw new Error("User or Asset not found");
         }
         const notification = this.notificationRepository.create({ userId: user, assetId: asset, exchangeAssetId: exchangeAsset, message });
-        return await this.notificationRepository.save(notification);
+        return this.notificationRepository.save(notification);
     }
 
     async getReadNotifications(id: string, choice: boolean) {
@@ -71,10 +73,11 @@ export class NotificationService {
             where: { id },
             relations: ["userId", "assetId", "exchangeAssetId"]
         });
-        if (!notification) throw new Error("Notification not found");
+        if (!notification) {
+            throw new Error("Notification not found");
+        }
         if (notification.assetId?.id && notification.exchangeAssetId?.id && notification.userId?.id) {
-           await NotificationResolver.exchangeAsset(notification.assetId.id, notification.exchangeAssetId.id, notification.userId.id, choice );
-           return "Success";
+           return await NotificationResolver.exchangeAsset(notification.id, notification.assetId.id, notification.exchangeAssetId.id, notification.userId.id, choice );
         }
         else if (choice) {
             const asset = await this.assetRepository.findOne({ where: { id: notification.assetId?.id } });
@@ -132,15 +135,18 @@ export class NotificationService {
 
 
 
-    async getReadExchangeNotifications(asset_id: string, exchangeId: string, assigned_to: string, choice: boolean){
+    async getReadExchangeNotifications(id: string,asset_id: string, exchangeId: string, assigned_to: string, choice: boolean){
         try{
             const notification = await this.notificationRepository.findOne({
-                where: { assetId: { id: asset_id }},
+                where: { id },
                 relations: ["userId", "assetId", "exchangeAssetId"]
             });
-            if (!notification) throw new Error("Notification not found");
+            if (!notification) {
+                throw new Error("Notification not found");
+            }
             if(choice){
-                await this.assetRepository.update(asset_id,{ assigned_to: null as any, assigned_status: AssignedStatus.AVAILABLE, assigned_date: null as any, return_date: new Date()});
+                await this.assetRepository.update(asset_id,{ assigned_to: null as any, assigned_status: AssignedStatus.AVAILABLE,
+                     assigned_date: null as any, return_date: new Date()});
                 const asset = await this.assetRepository.findOne({ where: { id: exchangeId } });
                 if (!asset) throw new Error("Asset not found in assignAsset");
                 const user = await this.userRepository.findOne({ where: { id: assigned_to } });
@@ -148,10 +154,13 @@ export class NotificationService {
                 asset.assignedTo = user;
                 asset.assigned_status = AssignedStatus.ASSIGNED;
                 asset.assigned_date = new Date();
-                await this.assetRepository.save(asset);
                 notification.is_read = true;
                 notification.approved = true;
+                console.log('notifications', notification);
+                console.log('Notifications : ',notification.is_read,notification.approved,notification.rejected);
                 await this.notificationRepository.save(notification);
+                console.log('Notifications : ',notification.is_read,notification.approved,notification.rejected);
+                await this.assetRepository.save(asset);
                 if (user) {
                     await sendEmail({
                         to: user.email,
@@ -207,5 +216,6 @@ export class NotificationService {
 }
 
 export const notificationService = new NotificationService();
+
 
 

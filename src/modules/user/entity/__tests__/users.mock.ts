@@ -5,7 +5,7 @@ export const mockFindAndCount = jest.fn();
 export const mockCreate = jest.fn();
 export const mockSave = jest.fn();
 
-const usersmockRepository: any = {
+const usersmockRepository: object = {
     find: mockFind,
     findOne: mockFindOne,
     update: mockUpdate,

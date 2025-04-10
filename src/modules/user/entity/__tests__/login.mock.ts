@@ -1,4 +1,4 @@
-import { Status, UserRole } from "../modules/user/entity/user.enum";
+import { Status, UserRole } from "../user.enum";
 
 export const mockFindOne = jest.fn();
 export const mockSave = jest.fn();
@@ -26,7 +26,7 @@ export const mockUsers = [
     },
 ]
 
-const loginmockRepository: any = {
+const loginmockRepository: object = {
     findOne: mockFindOne,
     save: mockSave,
 };

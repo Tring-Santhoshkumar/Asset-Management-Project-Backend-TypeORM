@@ -2,6 +2,7 @@ import { Arg, Int, Mutation, Query, Resolver } from "type-graphql";
 import { Assets } from "./entity/asset.entity";
 import { AssetService } from "./asset.service";
 import { addAssetInput, PaginatedAssets } from "./entity/input";
+import { AssignedStatus } from "./entity/asset.enum";
 
 
 
@@ -26,10 +27,11 @@ export class AssetResolver {
     @Query(() => PaginatedAssets)
     async getAllAssetsPagination(
         @Arg("page", () => Int) page: number,
-        @Arg("limit", () => Int) limit: number
+        @Arg("limit", () => Int) limit: number,
+        @Arg("assigned_status", () => AssignedStatus, { nullable: true}) assigned_status?: AssignedStatus
     ){
         try{
-            return await this.assetService.getAllAssetsPagination(page, limit);
+            return await this.assetService.getAllAssetsPagination(page, limit, assigned_status);
         }
         catch(error : any){
             throw new Error(`Error in getAllAssetsPagination resolver ${error}`);

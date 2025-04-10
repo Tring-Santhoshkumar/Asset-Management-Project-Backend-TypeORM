@@ -24,10 +24,11 @@ export class UserResolver {
     @Query(() => PaginatedUsers)
     async paginatedUsers(
         @Arg("page", () => Int) page: number,
-        @Arg("limit", () => Int) limit: number
+        @Arg("limit", () => Int) limit: number,
+        @Arg("role", () => UserRole,{ nullable: true }) role: UserRole
     ){
         try{
-            return await this.userService.getAllUsersPagination(page, limit);
+            return await this.userService.getAllUsersPagination(page, limit, role);
         }catch(error){
             throw new Error('paginatedUsers resolver ' + error);
         }
@@ -110,3 +111,4 @@ export class UserResolver {
         }
     }
 }
+

@@ -1,9 +1,9 @@
-import { UserService } from "../modules/user/user.service"
-import mockRepository, { mockCreate, mockFind, mockFindAndCount, mockFindOne, mockSave, mockUpdate } from "../__mocks__/users.mock"
-import { mockUsers } from "../__mocks__/login.mock"
-import { UserRole } from "../modules/user/entity/user.enum"
+import { UserService } from "../../user.service"
+import mockRepository, { mockCreate, mockFind, mockFindAndCount, mockFindOne, mockSave, mockUpdate } from "./users.mock"
+import { mockUsers } from "./login.mock"
+import { UserRole } from "../user.enum"
 
-jest.mock("../database/data-source", () => {
+jest.mock("../../../../database/data-source", () => {
     return {
         __esModule: true,
         default: {
@@ -13,7 +13,7 @@ jest.mock("../database/data-source", () => {
 })
 
 
-jest.mock("../utils/mailer/mailer", () => ({
+jest.mock(".../../../../utils/mailer/mailer", () => ({
     sendEmail: jest.fn(() => Promise.resolve()),
 }));
 
@@ -23,11 +23,6 @@ describe("UserService - getAllUsers", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         userService = new UserService();
-        // let storedUser: any;
-        // mockFindOne.mockImplementation(({ where: { id } }) => {
-        //     storedUser = mockUsers.find(user => user.id === id);
-        //     return Promise.resolve(storedUser || null);
-        // })
     })
 
     test("All users - Null users", async () => {
@@ -47,14 +42,14 @@ describe("UserService - getAllUsers", () => {
     })
 
     test("Get a user - without DOB", async () => {
-        const user = mockUsers.find(user => user.dob === null);
+        const user = mockUsers.find(users => users.dob === null);
         mockFindOne.mockResolvedValueOnce(user);
         const result = await userService.getUserById(user!.id);
         expect(result.dob).toBeNull();
     })
 
     test("Get a user - with DOB", async () => {
-        const user = mockUsers.find(user => user.dob !== null);
+        const user = mockUsers.find(users => users.dob !== null);
         mockFindOne.mockResolvedValueOnce(user);
         const result = await userService.getUserById(user!.id);
         const formatDob = new Date(result!.dob!).toISOString().split('T')[0];
@@ -67,4 +62,15 @@ describe("UserService - getAllUsers", () => {
         expect(result.users).toEqual(mockUsers);
         expect(result.totalCount).toBe(mockUsers.length);
     });
+
+    test("addUser - Add User", async () => {
+        mockFindOne.mockResolvedValueOnce(null);
+        mockCreate.mockReturnValueOnce({
+            name : "Dipshy", email: "dipshy@mailinator.com", role: UserRole.USER, password: "hashPassword", created_at: expect.any(Date), updated_at: expect.any(Date)
+        })
+        mockSave.mockResolvedValueOnce({ id: "3", name: "Dipshy"});
+        const result = await userService.addUser("Dipshy", "dipshy@mailinator.com", UserRole.USER);
+        expect(result).toBe("User added successfully!");
+    });
+
 })

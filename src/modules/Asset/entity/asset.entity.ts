@@ -35,9 +35,9 @@ export class Assets {
     @Field()
     condition!: AssetCondition;
 
-    @Column({ type: "int", nullable: true })
+    @Column({ type: "uuid", nullable: true })
     @Field({ nullable: true})
-    assigned_to?: number;
+    assigned_to?: string;
 
     @Column({ type: "enum", enum: AssignedStatus, default: AssignedStatus.AVAILABLE })
     @Field()
@@ -78,3 +78,4 @@ export class Assets {
     @Field(() => [Notifications], { nullable: true})
     exChangeNotifications?: Notifications[];
 }
+

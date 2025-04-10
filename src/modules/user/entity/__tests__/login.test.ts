@@ -1,13 +1,24 @@
-import { UserService } from "../modules/user/user.service";
-import { Status } from "../modules/user/entity/user.enum";
+import { UserService } from "../../user.service";
+import { Status, UserRole } from "../user.enum";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import mockRepository, { mockFindOne, mockUsers } from "../__mocks__/login.mock";
+import mockRepository, { mockFindOne, mockUsers } from "./login.mock";
+
+interface UserType{
+    id: string,
+    name: string,
+    email: string,
+    password: string,
+    status: Status,
+    role: UserRole,
+    reset_password: boolean,
+    dob: string | null
+}
 
 jest.mock("bcrypt");
 jest.mock("jsonwebtoken");
 
-jest.mock("../database/data-source", () => {
+jest.mock("../../../../database/data-source", () => {
     return {
         __esModule: true,
         default: {
@@ -21,10 +32,10 @@ describe("UserService - loginUser", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         userService = new UserService();
-        let storedUser: any;
+        let storedUser: UserType | null;
         mockFindOne.mockImplementation(({ where: { email } }) => {
-            storedUser = mockUsers.find(user => user.email === email);
-            return Promise.resolve(storedUser || null);
+            storedUser = mockUsers.find(user => user.email === email) ?? null;
+            return Promise.resolve(storedUser);
         });
         (bcrypt.compare as jest.Mock).mockImplementation((inputPassword, storedPassword) => {
             return Promise.resolve(storedUser && inputPassword === storedPassword);
@@ -38,7 +49,7 @@ describe("UserService - loginUser", () => {
     });
 
     test("Inactive User", async () => {
-        const user = mockUsers.find(user => user.status === Status.INACTIVE)!;
+        const user = mockUsers.find(users => users.status === Status.INACTIVE)!;
         const result = await userService.loginUser(user.email, user.password);
         expect(result).toBe("Inactive User");
     });
@@ -48,7 +59,7 @@ describe("UserService - loginUser", () => {
         expect(result).toBe("Invalid Password");
     });
 
-    test("should return JWT token and update reset_password if valid", async () => {
+    test("should return JWT token if valid", async () => {
         const result = await userService.loginUser("santhosh@mailinator.com", "Admin@123");
         expect(result).toBe("JWT TOKEN");
     });

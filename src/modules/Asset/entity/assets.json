@@ -10,3 +10,4 @@
     { "type": "Tablet", "serial_no": "TRL209", "name": "Microsoft Surface Pro 9", "version": "2023", "specifications": "16GB RAM, 1TB SSD, 13 Display", "condition": "NEEDS_REPAIR", "assigned_status": "AVAILABLE" },
     { "type": "Tablet", "serial_no": "TRL210", "name": "iPad Air", "version": "2022", "specifications": "M1 Chip, 256GB", "condition": "DAMAGED", "assigned_status": "AVAILABLE" }
 ]
+
